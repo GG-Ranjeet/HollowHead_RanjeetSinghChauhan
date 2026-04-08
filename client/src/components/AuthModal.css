@@ -1,0 +1,338 @@
+.auth-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+  padding: 20px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.auth-modal-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 900px;
+  min-height: 520px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  display: flex;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.auth-modal-close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  color: #64748b;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.auth-modal-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #0f172a;
+}
+
+/* ===== LEFT BANNER (Image Section) ===== */
+/* Dimensions: flex: 1, max-width: 420px, min-height: 520px (same as card) */
+/* You can add your image as a background-image or as an <img> tag inside this div */
+.auth-side-banner {
+  flex: 0.85;
+  max-width: 360px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.45) 0%, rgba(5, 150, 105, 0.6) 100%), url('https://images.unsplash.com/photo-1540039155732-680c74f1143c?auto=format&fit=crop&w=800&q=80');
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 40px;
+}
+
+.auth-banner-content {
+  position: relative;
+  z-index: 2;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.auth-banner-content h2 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 20px;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.auth-banner-content p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  line-height: 1.6;
+  max-width: 300px;
+}
+
+/* ===== RIGHT FORM SECTION ===== */
+.auth-form-container {
+  flex: 0.9;
+  padding: 40px 45px;
+  display: flex;
+  flex-direction: column;
+  background: white;
+}
+
+.auth-form-header {
+  margin-bottom: 24px;
+}
+
+.auth-form-header h3 {
+  font-size: 1.7rem;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.auth-form-header p {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+/* ===== Auth Tabs ===== */
+.auth-tabs {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 22px;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.auth-tab.active {
+  background: white;
+  color: #0f172a;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* ===== Form Groups ===== */
+.auth-form-group {
+  margin-bottom: 14px;
+}
+
+.auth-form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.auth-form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: #0f172a;
+  transition: all 0.2s ease;
+}
+
+.auth-form-group input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+/* ===== Password Toggle ===== */
+.auth-password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth-password-wrapper input {
+  padding-right: 46px;
+}
+
+.auth-password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.auth-password-toggle:hover {
+  color: #475569;
+}
+
+/* ===== Button Stack (Submit + OR + Google) ===== */
+.auth-btn-stack {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+/* Sign In / Register Button - BLUE */
+.auth-submit-btn {
+  flex: 1;
+  padding: 12px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.auth-submit-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.25);
+}
+
+.auth-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* OR Divider */
+.auth-divider {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  display: none;
+}
+
+.auth-divider span {
+  padding: 0;
+}
+
+/* Google Button - GREY */
+.auth-google-btn {
+  flex: 1;
+  padding: 12px;
+  background: #d1d5db;
+  border: 1px solid #c0c4cc;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 600;
+  color: #1f2937;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.auth-google-btn:hover:not(:disabled) {
+  background: #bfc4cc;
+  border-color: #9ca3af;
+}
+
+.auth-google-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ===== Error Message ===== */
+.auth-error-msg {
+  background: #fef2f2;
+  color: #ef4444;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+  border-left: 3px solid #ef4444;
+}
+
+/* ===== Mobile Responsive ===== */
+@media (max-width: 768px) {
+  .auth-side-banner {
+    display: none;
+  }
+
+  .auth-modal-card {
+    max-width: 450px;
+    flex-direction: column;
+  }
+
+  .auth-form-container {
+    padding: 30px 25px;
+  }
+}

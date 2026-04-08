@@ -1,0 +1,451 @@
+.profile-container {
+  max-width: 1000px; /* Reduced to make it compact horizontally too */
+  margin: 0 auto;
+  padding: 4rem 2rem 2rem; /* Further reduced top padding. Navbar is 3.5rem tall. */
+  min-height: calc(100vh - 8rem);
+}
+
+.profile-container.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  color: var(--primary-color);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Header */
+.profile-header-card {
+  background: white;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.profile-header-bg {
+  height: 110px; /* Reduced from 140px */
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  position: relative;
+}
+
+.profile-header-bg::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at top right, rgba(255,255,255,0.2) 0%, transparent 60%);
+}
+
+.profile-header-content {
+  padding: 0 30px 25px; /* Reduced padding from 40px */
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5rem; /* Reduced gap slightly */
+  margin-top: -50px; /* Adjusted to fit smaller avatar */
+  position: relative;
+  z-index: 2;
+}
+
+.profile-avatar-wrapper {
+  position: relative;
+}
+
+.profile-avatar {
+  width: 115px; /* Reduced from 140px */
+  height: 115px;
+  border-radius: 50%;
+  border: 5px solid white; /* Reduced border thickness slightly */
+  background: #f1f5f9;
+  object-fit: cover;
+  box-shadow: var(--shadow-md); /* Reduced shadow intensity */
+}
+
+.profile-role-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: #0f172a;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  border: 3px solid white;
+}
+
+.profile-info {
+  margin-bottom: 5px; /* Adjusted to sit better with smaller avatar */
+}
+
+.profile-info h1 {
+  font-size: 1.8rem; /* Reduced from 2.2rem */
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0px; /* Reduced gap */
+}
+
+.profile-email {
+  color: #64748b;
+  font-size: 1rem; /* Reduced slightly */
+}
+
+.profile-university {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #10b981;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+/* Sections */
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.section-title h2 {
+  font-size: 1.8rem;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ticket-count {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Feedback States */
+.tickets-loading, .tickets-error, .tickets-empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.tickets-loading p {
+  margin-top: 1rem;
+  color: #64748b;
+}
+
+.tickets-empty h3 {
+  font-size: 1.5rem;
+  color: #0f172a;
+  margin: 1rem 0 0.5rem;
+}
+
+.tickets-empty p {
+  color: #64748b;
+  max-width: 400px;
+  margin: 0 auto 2rem;
+  line-height: 1.6;
+}
+
+.empty-icon {
+  width: 80px;
+  height: 80px;
+  background: #f1f5f9;
+  color: #cbd5e1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+/* Ticket Grid */
+.tickets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+/* Premium Ticket Card */
+.ticket-card {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
+  display: flex;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #f1f5f9;
+}
+
+.ticket-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px -15px rgba(0,0,0,0.15);
+}
+
+/* Stitched / Perforated Edge Effect */
+.ticket-card::before {
+  content: '';
+  position: absolute;
+  left: 140px;
+  top: 0;
+  bottom: 0;
+  border-left: 2px dashed #e2e8f0;
+  z-index: 10;
+}
+
+.ticket-card::after, .ticket-card-visuals::after {
+  content: '';
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background: #f8fafc; /* Matches typical body background */
+  border-radius: 50%;
+  left: 128px;
+  z-index: 10;
+}
+
+.ticket-card::after { top: -12px; }
+
+.ticket-visuals {
+  width: 140px;
+  padding: 1.5rem 1rem;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid transparent;
+}
+
+.qr-wrapper {
+  background: white;
+  padding: 8px;
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.ticket-id {
+  font-family: monospace;
+  color: #64748b;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+}
+
+.ticket-details {
+  flex: 1;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.ticket-status-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.status-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.status-pill.free { background: #dbfefe; color: #0891b2; }
+.status-pill.paid { background: #fef3c7; color: #d97706; }
+.status-pill.checked { background: #f1f5f9; color: #64748b; }
+
+.ticket-details h3 {
+  font-size: 1.25rem;
+  color: #0f172a;
+  margin-bottom: 1rem;
+  line-height: 1.3;
+}
+
+.ticket-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: auto;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.ticket-footer {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.purchase-date {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+/* Checked in state */
+.ticket-card.checked-in {
+  opacity: 0.7;
+  filter: grayscale(0.5);
+}
+
+.scanned-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  background: rgba(15, 23, 42, 0.9);
+  color: white;
+  font-weight: 800;
+  letter-spacing: 2px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: 2px solid white;
+}
+
+@media (max-width: 768px) {
+  .profile-header-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .profile-role-badge {
+    right: 50%;
+    transform: translateX(50%);
+  }
+  
+  .ticket-card {
+    flex-direction: column;
+  }
+  
+  .ticket-card::before, .ticket-card::after {
+    display: none;
+  }
+  
+  .ticket-visuals {
+    width: 100%;
+    flex-direction: row;
+    gap: 2rem;
+    border-right: none;
+    border-bottom: 2px dashed #e2e8f0;
+  }
+}
+
+/* Edit Profile Styles */
+.edit-profile-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.edit-profile-btn:hover {
+  background: white;
+  color: #059669;
+}
+
+/* Edit Modal Overlay */
+.edit-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.edit-modal-card {
+  background: white;
+  width: 100%;
+  max-width: 450px;
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.edit-modal-header {
+  padding: 20px 30px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.edit-modal-header h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.25rem;
+}
+
+.close-modal-btn {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-modal-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.edit-modal-body {
+  padding: 30px;
+}
+
+.edit-modal-footer {
+  padding: 20px 30px;
+  background: #f8fafc;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid #e2e8f0;
+}

@@ -1,13 +1,28 @@
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Ticket, LayoutDashboard, LogOut } from 'lucide-react';
+import { Search, Ticket, LayoutDashboard, LogOut, Star, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './Navbar.css';
 
 function Navbar() {
-  const { currentUser, dbUser, logout } = useAuth();
+  const { currentUser, dbUser, logout, openAuthModal } = useAuth();
   const navigate = useNavigate();
+  
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleLogout = () => {
+    setIsDropdownOpen(false);
     logout();
     navigate('/');
   };
@@ -33,13 +48,6 @@ function Navbar() {
             <span>Explore</span>
           </Link>
           
-          {currentUser && (
-            <Link to="/profile" className="nav-item">
-              <Ticket size={20} />
-              <span>My Tickets</span>
-            </Link>
-          )}
-
           {isOrganizer && (
             <Link to="/organizer/dashboard" className="nav-item org-portal-btn" style={{ background: 'var(--primary-color)', color: '#fff', padding: '0.5rem 1rem', borderRadius: 'var(--radius-full)', fontWeight: '600' }}>
               <LayoutDashboard size={18} />
@@ -51,18 +59,47 @@ function Navbar() {
         <div className="nav-profile">
           {!currentUser ? (
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-              <Link to="/login" style={{ color: 'var(--text-main)', textDecoration: 'none', fontWeight: '500' }}>Login</Link>
-              <Link to="/signup" className="btn btn-primary" style={{ padding: '0.5rem 1rem' }}>Sign Up</Link>
+              <button onClick={openAuthModal} style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', fontWeight: '500', cursor: 'pointer', fontSize: '1rem' }}>Login</button>
+              <button onClick={openAuthModal} className="btn btn-primary" style={{ border: 'none', cursor: 'pointer', padding: '0.6rem 1.2rem', fontSize: '0.95rem' }}>Sign Up</button>
             </div>
           ) : (
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <img src={avatarUrl} alt="avatar" referrerPolicy="no-referrer" style={{ width: '32px', height: '32px', borderRadius: '50%', border: '2px solid var(--border-color)'}} />
-                <span style={{ fontWeight: '500' }} className="user-name-desktop">{displayName}</span>
+            <div style={{ position: 'relative' }} ref={dropdownRef}>
+              <div 
+                className="profile-dropdown-trigger"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                style={{ background: isDropdownOpen ? '#f1f5f9' : 'transparent' }}
+              >
+                <img src={avatarUrl} alt="avatar" referrerPolicy="no-referrer" className="dropdown-avatar" />
+                <span className="user-name-desktop">{displayName}</span>
               </div>
-              <button className="profile-btn" onClick={handleLogout} title="Logout" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: 'none', cursor: 'pointer', padding: '0.4rem', borderRadius: '8px', display: 'flex', alignItems: 'center' }}>
-                <LogOut size={18} />
-              </button>
+              
+              {isDropdownOpen && (
+                <div className="profile-dropdown-menu">
+                  {isOrganizer ? (
+                    <>
+                      <Link to="/organizer/dashboard" className="dropdown-item" onClick={() => setIsDropdownOpen(false)}>
+                        <LayoutDashboard size={18} /> Organizer Portal
+                      </Link>
+                      <Link to="/profile" className="dropdown-item" onClick={() => setIsDropdownOpen(false)}>
+                        <User size={18} /> My Profile
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link to="/profile" className="dropdown-item" onClick={() => setIsDropdownOpen(false)}>
+                        <Ticket size={18} /> Profile & Tickets
+                      </Link>
+                      <Link to="/pricing" className="dropdown-item" onClick={() => setIsDropdownOpen(false)} style={{ color: '#059669', background: '#ecfdf5' }}>
+                        <Star size={18} /> Upgrade to Host
+                      </Link>
+                    </>
+                  )}
+                  <div className="dropdown-divider"></div>
+                  <button className="dropdown-item logout" onClick={handleLogout}>
+                    <LogOut size={18} /> Logout
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

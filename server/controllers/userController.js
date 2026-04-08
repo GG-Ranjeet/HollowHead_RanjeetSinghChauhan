@@ -67,3 +67,41 @@ export const updateRole = async (req, res) => {
     res.status(500).json({ error: "Failed to update user role" });
   }
 };
+
+export const updateProfile = async (req, res) => {
+  try {
+    const { name, university } = req.body;
+    
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (university !== undefined) updateData.university = university;
+    
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: "No valid fields to update" });
+    }
+    
+    const userRef = db.collection('users').doc(req.user.uid);
+    await userRef.update(updateData);
+    
+    res.status(200).json({ message: "Profile updated successfully", updatedFields: updateData });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    res.status(500).json({ error: "Failed to update profile" });
+  }
+};
+
+export const deleteUserAccount = async (req, res) => {
+  try {
+    const uid = req.user.uid;
+    // Delete the document from the users collection
+    await db.collection('users').doc(uid).delete();
+    
+    // (Optional) Here we could also purge their tickets/events if this was a deep cascading delete,
+    // but typically event platforms soft-delete or anonymize records. For now, removing user access is sufficient.
+    
+    res.status(200).json({ message: "Account successfully purged." });
+  } catch (error) {
+    console.error("Error deleting account:", error);
+    res.status(500).json({ error: "Failed to permanently delete account." });
+  }
+};

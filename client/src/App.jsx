@@ -13,27 +13,29 @@ import Booking from './pages/Booking';
 import Ticket from './pages/Ticket';
 import Dashboard from './pages/Dashboard';
 import CreateEvent from './pages/CreateEvent';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
+import Profile from './pages/Profile';
+import Pricing from './pages/Pricing';
 import ProtectedRoute from './components/ProtectedRoute';
+import AuthModal from './components/AuthModal';
 
 function App() {
   return (
     <div className="app-container">
       <ScrollToTop />
+      <AuthModal />
       <Routes>
         {/* Client Flow */}
         <Route element={<ClientLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/explore" element={<Explore />} />
+          <Route path="/pricing" element={<Pricing />} />
           <Route path="/events/:id" element={<EventDetail />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
           
           {/* Protected Client Routes */}
           <Route element={<ProtectedRoute requiredRole="client" />}>
             <Route path="/book/:id" element={<Booking />} />
             <Route path="/ticket/:id" element={<Ticket />} />
+            <Route path="/profile" element={<Profile />} />
           </Route>
         </Route>
 

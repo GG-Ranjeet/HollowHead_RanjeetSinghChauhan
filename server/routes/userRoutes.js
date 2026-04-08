@@ -1,11 +1,13 @@
 import express from 'express';
-import { syncUser, getUserProfile, updateRole } from '../controllers/userController.js';
+import { syncUser, getUserProfile, updateRole, updateProfile, deleteUserAccount } from '../controllers/userController.js';
 import { verifyFirebaseToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 router.post('/sync', verifyFirebaseToken, syncUser);
 router.get('/me', verifyFirebaseToken, getUserProfile);
-router.put('/role', verifyFirebaseToken, updateRole); // New endpoint to upgrade account
+router.delete('/me', verifyFirebaseToken, deleteUserAccount);
+router.put('/role', verifyFirebaseToken, updateRole);
+router.put('/profile', verifyFirebaseToken, updateProfile); // Endpoint to edit profile info
 
 export default router;
