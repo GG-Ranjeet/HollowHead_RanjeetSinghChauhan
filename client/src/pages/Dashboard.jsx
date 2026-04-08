@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { Users, DollarSign, Calendar, TrendingUp, Ticket } from 'lucide-react';
-import { mockEvents } from '../data/mockData';
+import { useAuth } from '../context/AuthContext';
 import { AreaChart, Area, BarChart, Bar, Legend, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const chartData = [
@@ -24,7 +25,8 @@ const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ec4899']; // Indigo, Green, A
 const REMAINING_COLORS = ['#e0e7ff', '#d1fae5', '#fef3c7', '#fce7f3']; // Lighter matching shades for remaining
 
 function Dashboard() {
-  const organizerEvents = mockEvents;
+  const { currentUser } = useAuth();
+  const [organizerEvents, setOrganizerEvents] = useState([]);
   const [animProgress, setAnimProgress] = useState(0); // 0 to 1
   const animRef = useRef(null);
 
@@ -51,6 +53,37 @@ function Dashboard() {
     return () => cancelAnimationFrame(animRef.current);
   }, []);
 
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/events');
+        const data = await response.json();
+        
+        if (response.ok && data.events) {
+          // Filter events by logged in Organizer and format them for the table
+          const hostedEvents = data.events
+            .filter(event => event.organizerId === currentUser?.uid)
+            .map(event => ({
+              id: event.id,
+              title: event.title,
+              date: new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+              totalSpots: event.totalCapacity || 0,
+              spotsLeft: (event.totalCapacity || 0) - (event.ticketsSold || 0),
+              status: event.status || 'published'
+            }));
+          
+          setOrganizerEvents(hostedEvents);
+        }
+      } catch (error) {
+        console.error("Failed to fetch events:", error);
+      }
+    };
+    
+    if (currentUser) {
+      fetchEvents();
+    }
+  }, [currentUser]);
+
   // Animated data — bars grow because the values change
   const animatedGoalsData = goalsData.map((item) => ({
     ...item,
@@ -61,7 +94,7 @@ function Dashboard() {
     <div className="container" style={{ paddingTop: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h1>Organizer Dashboard</h1>
-        <button className="btn btn-primary">Create Event +</button>
+        <Link to="/organizer/create" className="btn btn-primary">Create Event +</Link>
       </div>
 
       {/* Stats Overview */}
@@ -186,13 +219,13 @@ function Dashboard() {
                 <td style={{ padding: '1rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <div style={{ width: '100px', height: '6px', background: 'var(--bg-subtle)', borderRadius: '3px', overflow: 'hidden' }}>
-                      <div style={{ width: `${((e.totalSpots - e.spotsLeft) / e.totalSpots) * 100}%`, height: '100%', background: 'var(--success-color)' }}></div>
+                      <div style={{ width: `${((e.totalSpots - e.spotsLeft) / (e.totalSpots || 1)) * 100}%`, height: '100%', background: 'var(--success-color)' }}></div>
                     </div>
                     <span style={{ fontSize: '0.875rem' }}>{e.totalSpots - e.spotsLeft}/{e.totalSpots}</span>
                   </div>
                 </td>
                 <td style={{ padding: '1rem' }}>
-                  <span style={{ padding: '0.25rem 0.5rem', background: '#dcfce7', color: '#166534', borderRadius: 'var(--radius-full)', fontSize: '0.75rem', fontWeight: 600 }}>Active</span>
+                  <span style={{ padding: '0.25rem 0.5rem', background: e.status === 'published' ? '#dcfce7' : '#fef3c7', color: e.status === 'published' ? '#166534' : '#92400e', borderRadius: 'var(--radius-full)', fontSize: '0.75rem', fontWeight: 600 }}>{e.status === 'published' ? 'Active' : 'Draft'}</span>
                 </td>
                 <td style={{ padding: '1rem' }}>
                   <button className="btn btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>Manage</button>

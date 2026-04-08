@@ -1,11 +1,12 @@
 import express from 'express';
-import { createEvent, getEvents } from '../controllers/eventController.js';
+import { createEvent, getEvents, getEventById } from '../controllers/eventController.js';
 import { verifyFirebaseToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Public route to fetch events
 router.get('/', getEvents);
+router.get('/:id', getEventById);
 
 // Protected route to create an event (Requires Firebase Auth token)
 router.post('/', verifyFirebaseToken, createEvent);

@@ -67,3 +67,39 @@ export const getEvents = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch events" });
   }
 };
+
+export const getEventById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const doc = await db.collection('events').doc(id).get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    const data = doc.data();
+    
+    // Attempt to lookup organizer data briefly (optional but helpful for frontend)
+    let organizerData = { name: "Organizer", avatar: "https://i.pravatar.cc/150?u=" + data.organizerId };
+    try {
+      const orgDoc = await db.collection('users').doc(data.organizerId).get();
+      if (orgDoc.exists && orgDoc.data().name) {
+          organizerData.name = orgDoc.data().name;
+      }
+    } catch(e) {}
+
+    res.status(200).json({
+      event: {
+        id: doc.id,
+        ...data,
+        location: { lat: data.location.latitude, lng: data.location.longitude },
+        date: data.date.toDate(),
+        organizer: organizerData
+      }
+    });
+
+  } catch (error) {
+    console.error("Error fetching event by id:", error);
+    res.status(500).json({ error: "Failed to fetch event details" });
+  }
+};

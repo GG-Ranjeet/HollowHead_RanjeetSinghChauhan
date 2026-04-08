@@ -9,10 +9,10 @@ import OrganizerLayout from './layouts/OrganizerLayout';
 import Home from './pages/Home';
 import Explore from './pages/Explore';
 import EventDetail from './pages/EventDetail';
-import Booking from './pages/Booking';
 import Ticket from './pages/Ticket';
 import Dashboard from './pages/Dashboard';
 import CreateEvent from './pages/CreateEvent';
+import OrganizerSettings from './pages/OrganizerSettings';
 import Profile from './pages/Profile';
 import Pricing from './pages/Pricing';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -33,7 +33,6 @@ function App() {
           
           {/* Protected Client Routes */}
           <Route element={<ProtectedRoute requiredRole="client" />}>
-            <Route path="/book/:id" element={<Booking />} />
             <Route path="/ticket/:id" element={<Ticket />} />
             <Route path="/profile" element={<Profile />} />
           </Route>
@@ -44,6 +43,7 @@ function App() {
           <Route element={<OrganizerLayout />}>
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="create" element={<CreateEvent />} />
+            <Route path="settings" element={<OrganizerSettings />} />
           </Route>
         </Route>
       </Routes>

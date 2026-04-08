@@ -1,14 +1,147 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Calendar, Users, ArrowRight, Star } from 'lucide-react';
-import { mockEvents, userProfile } from '../data/mockData';
+import { MapPin, Calendar, Users, ArrowRight, Star, Navigation, Search, AlertCircle } from 'lucide-react';
+import { geohashQueryBounds, distanceBetween } from 'geofire-common';
+import { userProfile } from '../data/mockData';
+import { useAuth } from '../context/AuthContext';
 import './Home.css';
 
+// Hardcoded Lucknow pincodes for fallback
+const pincodeMap = {
+  "226028": { lat: 26.8833, lng: 81.0494, name: "BBDU Area" }, 
+  "226010": { lat: 26.8528, lng: 80.9995, name: "Gomti Nagar" },
+  "226001": { lat: 26.8500, lng: 80.9389, name: "Hazratganj" },
+};
+
 function Home() {
-  const recommendedEvents = mockEvents.filter(e => e.recommended);
-  const otherEvents = mockEvents.filter(e => !e.recommended);
+  const { dbUser } = useAuth();
+  const [userLocation, setUserLocation] = useState(null);
+  const [pincodeStr, setPincodeStr] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [nearbyEvents, setNearbyEvents] = useState([]);
+  
+  const [displayEvents, setDisplayEvents] = useState([]);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/events');
+        const data = await response.json();
+        
+        if (response.ok && data.events) {
+          const formatted = data.events.map(e => ({
+            ...e,
+            date: new Date(e.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            time: new Date(e.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+            latitude: e.location?.lat,
+            longitude: e.location?.lng,
+            spotsLeft: (e.totalCapacity || 100) - (e.ticketsSold || 0),
+            totalSpots: e.totalCapacity || 100,
+            moods: e.tags || [],
+            venue: e.addressString || 'TBA',
+          }));
+          setDisplayEvents(formatted);
+        }
+      } catch (error) {
+        console.error("Failed to fetch events:", error);
+      }
+    };
+    fetchEvents();
+  }, []);
+
+  const handleEnableGPS = () => {
+    setErrorMsg("");
+    if (!navigator.geolocation) {
+      setErrorMsg("Geolocation is not supported by your browser.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          name: "Current GPS Location"
+        });
+      },
+      (error) => {
+        setErrorMsg("Unable to retrieve your location. " + error.message);
+      }
+    );
+  };
+
+  const handlePincodeSubmit = (e) => {
+    e.preventDefault();
+    setErrorMsg("");
+    const loc = pincodeMap[pincodeStr];
+    if (loc) {
+      setUserLocation(loc);
+    } else {
+      setErrorMsg("Pincode outside service area. Try 226028, 226010, or 226001.");
+    }
+  };
+
+  // Filter logic based on userLocation
+  useEffect(() => {
+    if (userLocation) {
+      const center = [userLocation.lat, userLocation.lng];
+      const radiusInKm = 10;
+      
+      const filtered = displayEvents.filter(event => {
+        if (!event.latitude || !event.longitude) return false;
+        const distance = distanceBetween(center, [event.latitude, event.longitude]);
+        return distance <= radiusInKm;
+      });
+      
+      setNearbyEvents(filtered);
+    }
+  }, [userLocation, displayEvents]);
+
+  const recommendedEvents = displayEvents.slice(0, 2);
+  const otherEvents = displayEvents.slice(2);
 
   return (
     <div className="home-container">
+      {/* Location Top Bar */}
+      <div className="location-bar">
+        <div className="container loc-container">
+          {!userLocation ? (
+             <div className="loc-prompt">
+                <div className="loc-prompt-text">
+                  <MapPin size={20} color="var(--primary-color)" />
+                  <span>Discover events near you. Enable location or enter a pincode.</span>
+                </div>
+                <div className="loc-actions">
+                  <button onClick={handleEnableGPS} className="btn-loc-gps">
+                    <Navigation size={16} /> Enable GPS
+                  </button>
+                  <form onSubmit={handlePincodeSubmit} className="loc-form">
+                     <input 
+                       type="text" 
+                       placeholder="e.g. 226028" 
+                       className="loc-input"
+                       value={pincodeStr}
+                       onChange={(e) => setPincodeStr(e.target.value)}
+                     />
+                     <button type="submit" className="loc-btn-submit"><Search size={16}/></button>
+                  </form>
+                </div>
+             </div>
+          ) : (
+            <div className="loc-active">
+               <MapPin size={20} color="var(--success-color)" />
+               <span>Showing events within 10km of <strong>{userLocation.name}</strong></span>
+               <button onClick={() => setUserLocation(null)} className="loc-clear">Change</button>
+            </div>
+          )}
+          
+          {errorMsg && (
+            <div className="loc-error">
+               <AlertCircle size={16}/> {errorMsg}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Hero Section */}
       <section className="hero-section">
         <div className="container hero-container">
@@ -25,7 +158,7 @@ function Home() {
               <Link to="/explore" className="btn btn-primary">
                 Explore Events <ArrowRight size={18} />
               </Link>
-              <Link to="/create-event" className="btn btn-secondary">
+              <Link to={dbUser?.role === 'organizer' ? "/organizer/create" : "/pricing"} className="btn btn-secondary">
                 Host an Event
               </Link>
             </div>
@@ -55,6 +188,53 @@ function Home() {
           </div>
         </div>
       </section>
+
+      {/* Nearby Events Section (Only shows if Location is Active) */}
+      {userLocation && (
+        <section className="featured-section" style={{ background: 'var(--bg-subtle)' }}>
+          <div className="container">
+            <div className="section-header">
+              <h2 className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Navigation color="var(--primary-color)" size={28} />
+                Nearby Events (10km Radius)
+              </h2>
+            </div>
+            
+            {nearbyEvents.length === 0 ? (
+               <p style={{color:'var(--text-muted)'}}>No events found nearby in this radius.</p>
+            ) : (
+              <div className="events-grid">
+                {nearbyEvents.map(event => (
+                  <Link to={`/events/${event.id}`} key={`nearby-${event.id}`} className="event-card">
+                    <div className="card-image-wrap">
+                      <img src={event.image} alt={event.title} className="card-image" />
+                      <div className="card-tags">
+                        {event.moods.slice(0, 2).map((mood, idx) => (
+                          <span key={idx} className="tag tag-blur">{mood}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="card-body">
+                      <h3 className="card-title">{event.title}</h3>
+                      <div className="card-meta">
+                        <span><Calendar size={14} /> {event.date}</span>
+                        <span><MapPin size={14} /> {event.venue}</span>
+                      </div>
+                      <div className="card-footer">
+                        <span className="price">{event.price === 0 ? 'Free' : `₹${event.price}`}</span>
+                        <span className="spots">
+                          <Users size={14} />
+                          {event.spotsLeft} spots left
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Recommended For You Section */}
       <section className="featured-section" style={{ background: 'var(--bg-card)' }}>

@@ -11,6 +11,15 @@ export const purchaseTicket = async (req, res) => {
       return res.status(400).json({ error: "Event ID is required" });
     }
 
+    const existingTicket = await db.collection('tickets')
+        .where('eventId', '==', eventId)
+        .where('userId', '==', userId)
+        .get();
+        
+    if (!existingTicket.empty) {
+        return res.status(400).json({ error: "ALREADY_BOOKED" });
+    }
+
     const eventRef = db.collection('events').doc(eventId);
     
     // We use a Firestore transaction to ensure we don't oversell tickets
@@ -109,5 +118,48 @@ export const checkInTicket = async (req, res) => {
   } catch (error) {
     console.error("Error checking in ticket:", error);
     res.status(500).json({ error: "Failed to check in ticket" });
+  }
+};
+
+export const getTicketById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const doc = await db.collection('tickets').doc(id).get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+
+    const ticketData = doc.data();
+    if (ticketData.userId !== req.user.uid) {
+        return res.status(403).json({ error: 'Unauthorized to view this ticket' });
+    }
+
+    const eventDoc = await db.collection('events').doc(ticketData.eventId).get();
+    let eventPayload = null;
+    
+    if (eventDoc.exists) {
+        const eventData = eventDoc.data();
+        eventPayload = {
+            id: eventDoc.id,
+            title: eventData.title,
+            image: eventData.image,
+            date: eventData.date ? eventData.date.toDate() : null,
+            venue: eventData.addressString || 'TBA'
+        };
+    }
+
+    res.status(200).json({ 
+        ticket: { 
+            id: doc.id, 
+            ...ticketData,
+            checkedInAt: ticketData.checkedInAt ? ticketData.checkedInAt.toDate() : null,
+            createdAt: ticketData.createdAt ? ticketData.createdAt.toDate() : null
+        },
+        event: eventPayload
+    });
+  } catch (error) {
+    console.error("Error fetching ticket by id:", error);
+    res.status(500).json({ error: "Failed to fetch ticket details" });
   }
 };
