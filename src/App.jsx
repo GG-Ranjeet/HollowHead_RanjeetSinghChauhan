@@ -1,6 +1,9 @@
 import { Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
+import ScrollToTop from './components/ScrollToTop';
+
+// Layouts
+import ClientLayout from './layouts/ClientLayout';
+import OrganizerLayout from './layouts/OrganizerLayout';
 
 // Pages
 import Home from './pages/Home';
@@ -14,19 +17,23 @@ import CreateEvent from './pages/CreateEvent';
 function App() {
   return (
     <div className="app-container">
-      <Navbar />
-      <main className="main-content">
-        <Routes>
+      <ScrollToTop />
+      <Routes>
+        {/* Client Flow */}
+        <Route element={<ClientLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/events/:id" element={<EventDetail />} />
           <Route path="/book/:id" element={<Booking />} />
           <Route path="/ticket/:id" element={<Ticket />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/create-event" element={<CreateEvent />} />
-        </Routes>
-      </main>
-      <Footer />
+        </Route>
+
+        {/* Organizer Flow */}
+        <Route path="/organizer" element={<OrganizerLayout />}>
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="create" element={<CreateEvent />} />
+        </Route>
+      </Routes>
     </div>
   );
 }

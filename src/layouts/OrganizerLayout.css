@@ -1,0 +1,42 @@
+.organizer-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-subtle);
+}
+
+.organizer-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 260px; /* Width of sidebar */
+}
+
+.organizer-topbar {
+  height: 60px;
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.organizer-topbar h2 {
+  font-size: 1.125rem;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.org-profile img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+.organizer-content {
+  padding: 2rem;
+  flex: 1;
+}
