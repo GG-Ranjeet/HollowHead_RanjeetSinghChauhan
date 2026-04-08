@@ -4,13 +4,17 @@ import { useAuth } from '../context/AuthContext';
 import './Sidebar.css';
 
 function Sidebar() {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, dbUser, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
+
+  const avatarUrl = currentUser?.photoURL || "https://i.pravatar.cc/150";
+  const displayName = currentUser?.displayName || dbUser?.name || "Organizer";
+  const roleLabel = dbUser?.role === 'organizer' ? 'Organizer' : 'Attendee';
 
   return (
     <aside className="sidebar">
@@ -22,10 +26,10 @@ function Sidebar() {
         
         {currentUser && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem', background: 'var(--bg-subtle)', borderRadius: '12px', width: '100%', marginTop: '0.5rem' }}>
-            <img src={currentUser.avatar || "https://i.pravatar.cc/150"} alt="Avatar" style={{ width: '36px', height: '36px', borderRadius: '50%'}} />
+            <img src={avatarUrl} alt="Avatar" referrerPolicy="no-referrer" style={{ width: '36px', height: '36px', borderRadius: '50%'}} />
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{currentUser.name}</span>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Organizer</span>
+              <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{displayName}</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{roleLabel}</span>
             </div>
           </div>
         )}

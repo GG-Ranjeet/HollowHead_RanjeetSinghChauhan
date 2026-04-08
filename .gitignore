@@ -51,3 +51,6 @@ client/dist/
 *.njsproj
 *.sln
 *.sw?
+
+
+./src/config/firebase.js

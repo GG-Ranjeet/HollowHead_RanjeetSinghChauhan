@@ -1,16 +1,23 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Ticket, LayoutDashboard, User, LogOut } from 'lucide-react';
+import { Search, Ticket, LayoutDashboard, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './Navbar.css';
 
 function Navbar() {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, dbUser, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
+
+  // Use the Google profile photo if available, otherwise a fallback
+  const avatarUrl = currentUser?.photoURL || "https://i.pravatar.cc/150?img=11";
+  const displayName = currentUser?.displayName || dbUser?.name || "User";
+
+  // Check role from Firestore database user (authoritative source)
+  const isOrganizer = dbUser?.role === 'organizer';
 
   return (
     <nav className="navbar">
@@ -33,7 +40,7 @@ function Navbar() {
             </Link>
           )}
 
-          {currentUser && currentUser.role === 'organizer' && (
+          {isOrganizer && (
             <Link to="/organizer/dashboard" className="nav-item org-portal-btn" style={{ background: 'var(--primary-color)', color: '#fff', padding: '0.5rem 1rem', borderRadius: 'var(--radius-full)', fontWeight: '600' }}>
               <LayoutDashboard size={18} />
               <span>Organizer Portal</span>
@@ -50,10 +57,10 @@ function Navbar() {
           ) : (
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <img src={currentUser.avatar || "https://i.pravatar.cc/150?img=11"} alt="avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', border: '2px solid var(--border-color)'}} />
-                <span style={{ fontWeight: '500', display: 'none' }} className="user-name-desktop">{currentUser.name}</span>
+                <img src={avatarUrl} alt="avatar" referrerPolicy="no-referrer" style={{ width: '32px', height: '32px', borderRadius: '50%', border: '2px solid var(--border-color)'}} />
+                <span style={{ fontWeight: '500' }} className="user-name-desktop">{displayName}</span>
               </div>
-              <button className="profile-btn" onClick={handleLogout} title="Logout" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: 'none' }}>
+              <button className="profile-btn" onClick={handleLogout} title="Logout" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: 'none', cursor: 'pointer', padding: '0.4rem', borderRadius: '8px', display: 'flex', alignItems: 'center' }}>
                 <LogOut size={18} />
               </button>
             </div>

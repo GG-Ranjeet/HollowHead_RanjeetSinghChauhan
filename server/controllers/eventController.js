@@ -3,7 +3,12 @@ import admin from 'firebase-admin';
 
 export const createEvent = async (req, res) => {
   try {
-    const { 
+    // Constraint: Only users with the 'organizer' role can create events
+    if (!req.dbUser || req.dbUser.role !== 'organizer') {
+      return res.status(403).json({ error: "Forbidden: Only organizers can create events. You must upgrade your account." });
+    }
+
+    const {
       title, description, category, 
       latitude, longitude, geohash, addressString, 
       date, price, totalCapacity 

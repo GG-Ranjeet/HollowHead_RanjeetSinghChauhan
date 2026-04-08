@@ -48,3 +48,22 @@ export const getUserProfile = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch user profile' });
   }
 };
+
+export const updateRole = async (req, res) => {
+  try {
+    const { newRole } = req.body;
+    
+    // Validate role is strictly one of the allowed types
+    if (!newRole || !['attendee', 'organizer'].includes(newRole)) {
+      return res.status(400).json({ error: "Invalid role specified" });
+    }
+    
+    const userRef = db.collection('users').doc(req.user.uid);
+    await userRef.update({ role: newRole });
+    
+    res.status(200).json({ message: `Successfully updated account role to ${newRole}` });
+  } catch (error) {
+    console.error("Error updating role:", error);
+    res.status(500).json({ error: "Failed to update user role" });
+  }
+};
