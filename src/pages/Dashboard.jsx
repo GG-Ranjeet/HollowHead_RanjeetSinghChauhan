@@ -1,8 +1,61 @@
+import { useState, useEffect, useRef } from 'react';
 import { Users, DollarSign, Calendar, TrendingUp, Ticket } from 'lucide-react';
 import { mockEvents } from '../data/mockData';
+import { AreaChart, Area, BarChart, Bar, Legend, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+
+const chartData = [
+  { name: 'Jan', revenue: 40000, tickets: 240 },
+  { name: 'Feb', revenue: 30000, tickets: 139 },
+  { name: 'Mar', revenue: 90000, tickets: 980 },
+  { name: 'Apr', revenue: 120000, tickets: 1908 },
+  { name: 'May', revenue: 180000, tickets: 1800 },
+  { name: 'Jun', revenue: 230000, tickets: 2800 },
+  { name: 'Jul', revenue: 340000, tickets: 3300 },
+];
+
+const goalsData = [
+  { metric: 'Revenue', achieved: 62, remaining: 38, current: '₹1.24L', target: '₹2L', numericValue: 124000, prefix: '₹', suffix: '', format: (v) => v >= 100000 ? `₹${(v/100000).toFixed(2)}L` : `₹${(v/1000).toFixed(0)}k` },
+  { metric: 'Tickets', achieved: 69, remaining: 31, current: '3,450', target: '5,000', numericValue: 3450, prefix: '', suffix: '', format: (v) => v.toLocaleString() },
+  { metric: 'Events', achieved: 40, remaining: 60, current: '4', target: '10', numericValue: 4, prefix: '', suffix: '', format: (v) => Math.round(v).toString() },
+  { metric: 'Views', achieved: 62.5, remaining: 37.5, current: '12.5k', target: '20k', numericValue: 12500, prefix: '', suffix: '', format: (v) => v >= 1000 ? `${(v/1000).toFixed(1)}k` : Math.round(v).toString() },
+];
+
+const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ec4899']; // Indigo, Green, Amber, Pink
+const REMAINING_COLORS = ['#e0e7ff', '#d1fae5', '#fef3c7', '#fce7f3']; // Lighter matching shades for remaining
 
 function Dashboard() {
-  const organizerEvents = mockEvents; // using all for demo
+  const organizerEvents = mockEvents;
+  const [animProgress, setAnimProgress] = useState(0); // 0 to 1
+  const animRef = useRef(null);
+
+  useEffect(() => {
+    const startTime = performance.now();
+    const delay = 100;
+    const duration = 1800;
+
+    const animate = (now) => {
+      const elapsed = now - startTime - delay;
+      if (elapsed < 0) {
+        animRef.current = requestAnimationFrame(animate);
+        return;
+      }
+      const progress = Math.min(elapsed / duration, 1);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setAnimProgress(eased);
+      if (progress < 1) {
+        animRef.current = requestAnimationFrame(animate);
+      }
+    };
+    animRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animRef.current);
+  }, []);
+
+  // Animated data — bars grow because the values change
+  const animatedGoalsData = goalsData.map((item) => ({
+    ...item,
+    achieved: item.achieved * animProgress,
+  }));
   
   return (
     <div className="container" style={{ paddingTop: '2rem' }}>
@@ -29,6 +82,87 @@ function Dashboard() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Charts Section */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+        
+        {/* Metrics Progress Chart */}
+        <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', padding: '2rem', borderRadius: 'var(--radius-lg)', border: '1px solid #334155' }}>
+          <h3 style={{ marginBottom: '1.5rem', color: '#f1f5f9' }}>Metrics Progress</h3>
+          <div style={{ width: '100%', height: 350 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={animatedGoalsData} margin={{ top: 30, right: 30, left: 0, bottom: 10 }} barSize={50}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                <XAxis dataKey="metric" stroke="#94a3b8" fontSize={13} tickLine={false} axisLine={false} dy={10} fontWeight={500} />
+                <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `${val}%`} domain={[0, 100]} />
+                <Bar 
+                  dataKey="achieved" 
+                  name="Achieved" 
+                  fill="var(--primary-color)" 
+                  radius={[8, 8, 8, 8]}
+                  isAnimationActive={false}
+                  label={({ x, y, width, value, index }) => {
+                    const item = goalsData[index];
+                    const animatedValue = item.numericValue * animProgress;
+                    return (
+                      <text 
+                        x={x + width / 2} 
+                        y={y - 10} 
+                        fill={COLORS[index % COLORS.length]} 
+                        textAnchor="middle" 
+                        fontSize={14} 
+                        fontWeight={700}
+                      >
+                        {item.format(animatedValue)}
+                      </text>
+                    );
+                  }}
+                >
+                  {goalsData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Revenue Trends Area Chart */}
+        <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', padding: '2rem', borderRadius: 'var(--radius-lg)', border: '1px solid #334155' }}>
+          <h3 style={{ marginBottom: '1.5rem', color: '#f1f5f9' }}>Revenue Trends</h3>
+          <div style={{ width: '100%', height: 350 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#818cf8" stopOpacity={0.6}/>
+                    <stop offset="95%" stopColor="#818cf8" stopOpacity={0.05}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value/1000}k`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                <Tooltip 
+                  contentStyle={{ background: '#1e293b', border: '1px solid #475569', borderRadius: '8px', color: '#f8fafc', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)' }}
+                  itemStyle={{ color: '#818cf8', fontWeight: 500 }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="#818cf8" 
+                  strokeWidth={2.5}
+                  fillOpacity={1} 
+                  fill="url(#colorRevenue)" 
+                  isAnimationActive={true}
+                  animationBegin={200}
+                  animationDuration={1500}
+                  animationEasing="ease-out"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
 
       {/* Event List */}

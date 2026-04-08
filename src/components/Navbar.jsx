@@ -16,13 +16,13 @@ function Navbar() {
             <Search size={20} />
             <span>Explore</span>
           </Link>
-          <Link to="/dashboard" className="nav-item">
-            <LayoutDashboard size={20} />
-            <span>Organize</span>
-          </Link>
           <Link to="/profile" className="nav-item">
             <Ticket size={20} />
             <span>My Tickets</span>
+          </Link>
+          <Link to="/organizer/dashboard" className="nav-item org-portal-btn" style={{ background: 'var(--primary-color)', color: '#fff', padding: '0.5rem 1rem', borderRadius: 'var(--radius-full)', fontWeight: '600' }}>
+            <LayoutDashboard size={18} />
+            <span>Organizer Portal</span>
           </Link>
         </div>
         
