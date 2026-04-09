@@ -18,7 +18,7 @@ function EventDetail() {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/events/${id}`);
+        const response = await fetch(`/api/events/${id}`);
         const data = await response.json();
 
         if (response.ok && data.event) {
@@ -56,7 +56,7 @@ function EventDetail() {
     setBookingError(null);
     try {
       const token = await auth.currentUser.getIdToken();
-      const response = await fetch('http://localhost:5000/api/tickets/purchase', {
+      const response = await fetch('/api/tickets/purchase', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

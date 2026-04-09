@@ -17,7 +17,7 @@ function Explore() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/events');
+        const response = await fetch('/api/events');
         const data = await response.json();
         
         if (response.ok && data.events) {
@@ -38,7 +38,7 @@ function Explore() {
 
     const fetchCategories = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/categories');
+        const response = await fetch('/api/categories');
         const data = await response.json();
         if (response.ok && data.categories) {
           setCategoriesList(data.categories.map(c => c.name));

@@ -21,7 +21,7 @@ function Ticket() {
         const token = await auth.currentUser?.getIdToken();
         if (!token) throw new Error("Authentication required");
 
-        const response = await fetch(`http://localhost:5000/api/tickets/${id}`, {
+        const response = await fetch(`/api/tickets/${id}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();

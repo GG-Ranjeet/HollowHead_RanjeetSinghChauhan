@@ -19,7 +19,7 @@ function OnboardingModal() {
     // Fetch live categories for the selector
     const fetchCategories = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/categories');
+        const response = await fetch('/api/categories');
         const data = await response.json();
         if (response.ok && data.categories) {
           setCategories(data.categories.map(c => c.name));
@@ -53,7 +53,7 @@ function OnboardingModal() {
       }
       if (!token) throw new Error("Authentication missing. Please re-login.");
 
-      const response = await fetch('http://localhost:5000/api/users/profile', {
+      const response = await fetch('/api/users/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

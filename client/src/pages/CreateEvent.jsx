@@ -42,7 +42,7 @@ function CreateEvent() {
     if (isEditMode) {
       const fetchEvent = async () => {
         try {
-          const response = await fetch(`http://localhost:5000/api/events/${id}`);
+          const response = await fetch(`/api/events/${id}`);
           if (response.ok) {
             const data = await response.json();
             const event = data.event;
@@ -73,7 +73,7 @@ function CreateEvent() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/categories/');
+        const response = await fetch('/api/categories/');
         const data = await response.json();
         console.log(data);
         if (response.ok && data.categories) {
@@ -114,7 +114,7 @@ function CreateEvent() {
       console.log("Submitting Event Payload:", payload);
 
       const token = await auth.currentUser.getIdToken();
-      const url = isEditMode ? `http://localhost:5000/api/events/${id}` : 'http://localhost:5000/api/events';
+      const url = isEditMode ? `/api/events/${id}` : '/api/events';
       const method = isEditMode ? 'PUT' : 'POST';
 
       const response = await fetch(url, {

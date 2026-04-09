@@ -59,7 +59,7 @@ function Dashboard() {
   const fetchEvents = async () => {
     try {
       const token = await auth.currentUser.getIdToken();
-      const response = await fetch('http://localhost:5000/api/events/organizer/me', {
+      const response = await fetch('/api/events/organizer/me', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -93,7 +93,7 @@ function Dashboard() {
     if (window.confirm("Are you sure you want to delete this event? This action cannot be undone.")) {
       try {
         const token = await auth.currentUser.getIdToken();
-        const response = await fetch(`http://localhost:5000/api/events/${id}`, {
+        const response = await fetch(`/api/events/${id}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -118,7 +118,7 @@ function Dashboard() {
       }
       try {
         const token = await auth.currentUser.getIdToken();
-        const response = await fetch(`http://localhost:5000/api/events/${id}`, {
+        const response = await fetch(`/api/events/${id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
