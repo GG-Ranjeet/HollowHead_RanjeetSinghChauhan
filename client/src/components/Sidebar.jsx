@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, PlusCircle, Settings, Home, LogOut, User } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Settings, Home, LogOut, ScanLine } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './Sidebar.css';
 
@@ -52,6 +52,14 @@ function Sidebar() {
         >
           <PlusCircle size={20} />
           <span>Create Event</span>
+        </NavLink>
+
+        <NavLink 
+          to="/organizer/validate" 
+          className={({ isActive }) => isActive ? 'sidebar-link active' : 'sidebar-link'}
+        >
+          <ScanLine size={20} />
+          <span>Validate Tickets</span>
         </NavLink>
 
         <NavLink 

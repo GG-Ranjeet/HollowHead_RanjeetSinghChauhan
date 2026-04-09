@@ -7,6 +7,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { userProfile } from '../data/mockData';
 import { useAuth } from '../context/AuthContext';
+import { imgFallback } from '../utils/eventImageFallback';
 import './Home.css';
 
 // Fix default icon issue
@@ -284,7 +285,7 @@ function Home() {
                 {nearbyEvents.map(event => (
                   <Link to={`/events/${event.id}`} key={`nearby-${event.id}`} className="event-card">
                     <div className="card-image-wrap">
-                      <img src={event.image} alt={event.title} className="card-image" />
+                      <img src={event.image} alt={event.title} className="card-image" onError={imgFallback(event.category)} />
                       <div className="card-tags">
                         {event.moods.slice(0, 2).map((mood, idx) => (
                           <span key={idx} className="tag tag-blur">{mood}</span>
@@ -368,7 +369,7 @@ function Home() {
               {lucknowEvents.map(event => (
                 <Link to={`/events/${event.id}`} key={event.id} className="event-card">
                   <div className="card-image-wrap" style={{ height: '160px' }}>
-                    <img src={event.image} alt={event.title} className="card-image" />
+                    <img src={event.image} alt={event.title} className="card-image" onError={imgFallback(event.category)} />
                   </div>
                   <div className="card-body" style={{ padding: '1rem' }}>
                     <h3 className="card-title" style={{ fontSize: '1.1rem' }}>{event.title}</h3>
@@ -416,7 +417,7 @@ function Home() {
                   <Marker key={`map-${event.id}`} position={[event.latitude, event.longitude]}>
                     <Popup>
                       <div style={{ textAlign: 'center', minWidth: '150px' }}>
-                        <img src={event.image} alt={event.title} style={{ width: '100%', height: '80px', objectFit: 'cover', borderRadius: '4px', marginBottom: '8px' }} />
+                        <img src={event.image} alt={event.title} style={{ width: '100%', height: '80px', objectFit: 'cover', borderRadius: '4px', marginBottom: '8px' }} onError={imgFallback(event.category)} />
                         <strong style={{ display: 'block', fontSize: '1rem', color: '#1e293b', marginBottom: '4px' }}>{event.title}</strong>
                         <span style={{ color: 'var(--primary-color)', fontWeight: 'bold' }}>{event.price === 0 ? 'Free' : `₹${event.price}`}</span>
                         <br />

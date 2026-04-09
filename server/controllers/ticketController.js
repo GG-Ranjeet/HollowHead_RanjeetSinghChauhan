@@ -93,20 +93,44 @@ export const checkInTicket = async (req, res) => {
     const snapshot = await db.collection('tickets').where('qrToken', '==', qrToken).get();
     
     if (snapshot.empty) {
-        return res.status(404).json({ error: "Invalid ticket QR code" });
+        return res.status(404).json({ error: "Invalid ticket — QR code not recognised" });
     }
     
     const ticketDoc = snapshot.docs[0];
     const ticketData = ticketDoc.data();
 
-    // Verify organizer permission
+    // Fetch event and run all guards
     const eventDoc = await db.collection('events').doc(ticketData.eventId).get();
-    if (eventDoc.exists && eventDoc.data().organizerId !== req.user.uid) {
+
+    if (!eventDoc.exists) {
+        return res.status(404).json({ error: "Associated event not found" });
+    }
+
+    const eventData = eventDoc.data();
+
+    // Guard 1: Only the event's own organizer can check in tickets
+    if (eventData.organizerId !== req.user.uid) {
         return res.status(403).json({ error: "Only the event organizer can check in tickets" });
     }
 
+    // Guard 2: Event must have already started
+    const eventStartTime = eventData.date.toDate();
+    if (new Date() < eventStartTime) {
+        const startsIn = eventStartTime.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+        return res.status(403).json({
+            error: `Event has not started yet. Validation opens at ${startsIn}.`,
+            eventNotStarted: true,
+            startsAt: eventStartTime.toISOString()
+        });
+    }
+
+    // Guard 3: Ticket must not already be used
     if (ticketData.isCheckedIn) {
-        return res.status(400).json({ error: "Ticket has already been checked in" });
+        return res.status(400).json({
+            error: "Ticket has already been used",
+            alreadyCheckedIn: true,
+            checkedInAt: ticketData.checkedInAt?.toDate()?.toISOString() ?? null
+        });
     }
 
     await ticketDoc.ref.update({
@@ -114,7 +138,11 @@ export const checkInTicket = async (req, res) => {
         checkedInAt: admin.firestore.Timestamp.now()
     });
 
-    res.status(200).json({ message: "Ticket checked in successfully", eventId: ticketData.eventId });
+    res.status(200).json({
+        message: "Ticket checked in successfully",
+        eventId: ticketData.eventId,
+        eventTitle: eventData.title
+    });
   } catch (error) {
     console.error("Error checking in ticket:", error);
     res.status(500).json({ error: "Failed to check in ticket" });
@@ -161,5 +189,72 @@ export const getTicketById = async (req, res) => {
   } catch (error) {
     console.error("Error fetching ticket by id:", error);
     res.status(500).json({ error: "Failed to fetch ticket details" });
+  }
+};
+
+export const validateTicketById = async (req, res) => {
+  try {
+    const { ticketId } = req.body;
+
+    if (!ticketId) {
+      return res.status(400).json({ error: "Ticket ID is required" });
+    }
+
+    const ticketDoc = await db.collection('tickets').doc(ticketId).get();
+
+    if (!ticketDoc.exists) {
+      return res.status(404).json({ error: "Invalid ticket ID — ticket not found" });
+    }
+
+    const ticketData = ticketDoc.data();
+
+    // Fetch event and run all guards
+    const eventDoc = await db.collection('events').doc(ticketData.eventId).get();
+
+    if (!eventDoc.exists) {
+      return res.status(404).json({ error: "Associated event not found" });
+    }
+
+    const eventData = eventDoc.data();
+
+    // Guard 1: Only the event's own organizer can validate tickets
+    if (eventData.organizerId !== req.user.uid) {
+      return res.status(403).json({ error: "Only the event organizer can validate tickets" });
+    }
+
+    // Guard 2: Event must have already started
+    const eventStartTime = eventData.date.toDate();
+    if (new Date() < eventStartTime) {
+      const startsIn = eventStartTime.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+      return res.status(403).json({
+        error: `Event has not started yet. Validation opens at ${startsIn}.`,
+        eventNotStarted: true,
+        startsAt: eventStartTime.toISOString()
+      });
+    }
+
+    // Guard 3: Ticket must not already be used
+    if (ticketData.isCheckedIn) {
+      return res.status(400).json({
+        error: "Ticket has already been used",
+        alreadyCheckedIn: true,
+        checkedInAt: ticketData.checkedInAt?.toDate()?.toISOString() ?? null
+      });
+    }
+
+    await ticketDoc.ref.update({
+      isCheckedIn: true,
+      checkedInAt: admin.firestore.Timestamp.now()
+    });
+
+    res.status(200).json({
+      message: "Ticket validated successfully",
+      eventId: ticketData.eventId,
+      eventTitle: eventData.title,
+      ticketId
+    });
+  } catch (error) {
+    console.error("Error validating ticket by ID:", error);
+    res.status(500).json({ error: "Failed to validate ticket" });
   }
 };

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { imgFallback } from '../utils/eventImageFallback';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Calendar, MapPin, Users, Share2, Ticket, X, CheckCircle } from 'lucide-react';
 import { auth } from '../config/firebase';
@@ -98,7 +99,7 @@ function EventDetail() {
     <div>
       {/* Banner */}
       <div style={{ width: '100%', height: '300px', backgroundColor: 'var(--bg-subtle)', position: 'relative' }}>
-        <img src={event.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Banner" />
+        <img src={event.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Banner" onError={imgFallback(event.category)} />
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(rgba(0,0,0,0) 40%, rgba(0,0,0,0.8) 100%)' }}></div>
       </div>
 

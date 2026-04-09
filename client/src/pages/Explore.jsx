@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { imgFallback } from '../utils/eventImageFallback';
 import { Link } from 'react-router-dom';
 import { Search, Filter, MapPin, Calendar, Users } from 'lucide-react';
 
@@ -153,7 +154,7 @@ function Explore() {
         {filteredEvents.length > 0 ? filteredEvents.map(event => (
           <Link to={`/events/${event.id}`} key={event.id} className="event-card">
             <div className="card-image-wrap">
-              <img src={event.image} alt={event.title} className="card-image" />
+              <img src={event.image} alt={event.title} className="card-image" onError={imgFallback(event.category)} />
               <div className="card-tags">
                 <span className="tag tag-blur">{event.category || 'Event'}</span>
               </div>

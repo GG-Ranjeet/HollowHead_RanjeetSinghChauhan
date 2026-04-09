@@ -13,6 +13,7 @@ import Ticket from './pages/Ticket';
 import Dashboard from './pages/Dashboard';
 import CreateEvent from './pages/CreateEvent';
 import OrganizerSettings from './pages/OrganizerSettings';
+import TicketValidator from './pages/TicketValidator';
 import Profile from './pages/Profile';
 import Pricing from './pages/Pricing';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -46,6 +47,7 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="create" element={<CreateEvent />} />
             <Route path="settings" element={<OrganizerSettings />} />
+            <Route path="validate" element={<TicketValidator />} />
           </Route>
         </Route>
       </Routes>

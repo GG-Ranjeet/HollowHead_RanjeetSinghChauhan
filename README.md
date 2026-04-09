@@ -2,8 +2,8 @@
 
 FlickyFest is a hyper-local event discovery and ticketing platform designed for students and event organizers. Whether you're hunting for a high-energy Campus Fest, an intense Tech Hackathon, or a networking workshop, FlickyFest empowers you to discover events within a 10km radius of your location, reserve spots instantly, and store live QR-code tickets.
 
-### Team name
-Hollow Head
+### Team name ( ID )
+Hollow Head ( KPT069 )
 
 ### Team members
 * Ranjeet Singh Chauhan

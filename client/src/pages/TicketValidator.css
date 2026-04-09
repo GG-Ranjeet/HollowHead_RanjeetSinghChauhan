@@ -1,0 +1,379 @@
+/* ============================================================
+   TicketValidator.css — Organizer Ticket Validation Page
+   ============================================================ */
+
+/* ── Page header ── */
+.tv-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.75rem;
+}
+
+.tv-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0 0 0.4rem;
+}
+
+.tv-title-icon {
+  color: var(--primary-color);
+}
+
+.tv-subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* ── Mode toggle ── */
+.tv-mode-toggle {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 0.5rem;
+}
+
+.tv-mode-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-muted);
+  transition: all 0.25s ease;
+}
+
+.tv-mode-btn:hover {
+  background: var(--bg-subtle);
+  color: var(--text-main);
+}
+
+.tv-mode-btn.active {
+  background: var(--primary-color);
+  color: white;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+}
+
+/* ── Shared panel ── */
+.tv-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 1.75rem;
+}
+
+/* ── QR Scanner ── */
+.tv-scanner-wrap {
+  position: relative;
+  min-height: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-region {
+  width: 100%;
+}
+
+/* Override html5-qrcode default styles */
+#qr-reader-region video {
+  border-radius: 0 !important;
+}
+#qr-reader-region {
+  border: none !important;
+}
+#qr-reader-region__scan_region {
+  background: transparent !important;
+}
+
+.qr-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 2rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.qr-placeholder-icon {
+  color: var(--primary-color);
+  opacity: 0.6;
+  animation: pulse-icon 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse-icon {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.05); }
+}
+
+.tv-cam-btn {
+  margin-top: 0.5rem;
+}
+
+.qr-overlay-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.qr-overlay-bar.loading {
+  background: rgba(99, 102, 241, 0.85);
+}
+
+.tv-cam-stop {
+  margin-left: auto;
+  padding: 0.35rem 0.75rem !important;
+  font-size: 0.8rem !important;
+}
+
+.scanning-pulse {
+  width: 10px;
+  height: 10px;
+  background: #22c55e;
+  border-radius: 50%;
+  animation: blink 1s step-start infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* Result overlay on scanner */
+.qr-result-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 15, 30, 0.88);
+  backdrop-filter: blur(6px);
+  z-index: 10;
+  border-radius: 0;
+}
+
+/* ── Result Banner ── */
+.result-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  border-radius: var(--radius-lg);
+  animation: pop-in 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  max-width: 320px;
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.result-success     { color: #22c55e; }
+.result-warn        { color: #f59e0b; }
+.result-not-started { color: #818cf8; }
+.result-error       { color: #ef4444; }
+
+.result-label {
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.result-message {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  max-width: 260px;
+}
+
+.result-reset-btn {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* ── Manual Entry ── */
+.tv-manual-wrap {
+  padding: 2rem;
+}
+
+.tv-manual-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+  color: var(--text-main);
+}
+
+.tv-type-selector {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+}
+
+.tv-type-opt {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.65rem 1rem;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+  background: var(--bg-subtle);
+}
+
+.tv-type-opt input[type="radio"] {
+  display: none;
+}
+
+.tv-type-opt:hover {
+  border-color: var(--primary-color);
+  color: var(--text-main);
+}
+
+.tv-type-opt.active {
+  border-color: var(--primary-color);
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--primary-color);
+}
+
+.tv-manual-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.tv-input-label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+}
+
+.tv-manual-input {
+  font-family: 'Courier New', monospace !important;
+  letter-spacing: 0.03em;
+  font-size: 0.9rem !important;
+}
+
+.tv-input-hint {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  margin-top: 0.4rem;
+}
+
+.tv-validate-btn {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tv-manual-result {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+/* Loading spinner */
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Help Card ── */
+.tv-help-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 2rem;
+}
+
+.tv-help-card h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: var(--text-main);
+}
+
+.tv-help-card ul {
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tv-help-card li {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .tv-mode-toggle {
+    flex-direction: column;
+  }
+  .tv-type-selector {
+    flex-direction: column;
+  }
+  .tv-validate-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInTV 0.3s ease;
+}
+
+@keyframes fadeInTV {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

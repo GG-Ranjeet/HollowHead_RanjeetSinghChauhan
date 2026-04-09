@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { QRCodeSVG } from 'qrcode.react';
-import { Ticket, Calendar, MapPin, Loader2, ArrowRight, Edit3, Save, X, Settings } from 'lucide-react';
+import { Ticket, Calendar, MapPin, Loader2, ArrowRight, Edit3, Save, X, Settings, Download, Share2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import html2canvas from 'html2canvas';
 import './Profile.css';
 
 function Profile() {
@@ -16,6 +17,10 @@ function Profile() {
   const [editName, setEditName] = useState('');
   const [editUniversity, setEditUniversity] = useState('');
   const [saving, setSaving] = useState(false);
+  const [activeTicket, setActiveTicket] = useState(null);  // modal
+  const [isSaving, setIsSaving] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const ticketModalRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,21 +36,44 @@ function Profile() {
       try {
         const token = await currentUser.getIdToken();
         const response = await fetch('/api/tickets/my-tickets', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { 'Authorization': `Bearer ${token}` }
         });
-        
         const data = await response.json();
-        
-        if (response.ok) {
-          const ticketsWithMockEventData = data.tickets.map(t => ({
-             ...t,
-             eventName: `FlickyFest Event #${t.eventId.slice(0,4)}`,
-             eventDate: 'Coming Soon',
-             eventLocation: 'Campus Main Arena'
-          }));
-          setTickets(ticketsWithMockEventData);
+
+        if (response.ok && data.tickets) {
+          // Fetch real event data for every ticket in parallel
+          const enriched = await Promise.all(
+            data.tickets.map(async (t) => {
+              try {
+                const evRes = await fetch(`/api/events/${t.eventId}`);
+                if (evRes.ok) {
+                  const evData = await evRes.json();
+                  const ev = evData.event;
+                  return {
+                    ...t,
+                    eventName: ev.title || 'Untitled Event',
+                    eventDate: ev.date
+                      ? new Date(ev.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                      : 'TBA',
+                    eventTime: ev.date
+                      ? new Date(ev.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+                      : '',
+                    eventLocation: ev.addressString || 'TBA',
+                    eventImage: ev.image || '',
+                  };
+                }
+              } catch { /* fallback below */ }
+              return {
+                ...t,
+                eventName: `Event (${t.eventId.slice(0, 6)})`,
+                eventDate: 'TBA',
+                eventTime: '',
+                eventLocation: 'TBA',
+                eventImage: '',
+              };
+            })
+          );
+          setTickets(enriched);
         } else {
           setError(data.error || 'Failed to load tickets');
         }
@@ -110,6 +138,47 @@ function Profile() {
       console.error("Deletion failed:", err);
       alert("Failed to delete account. You may need to log out and log back in to verify your identity before deleting.");
       setSaving(false);
+    }
+  };
+
+  // ── Ticket Modal: Save as PNG ──────────────────────────────────────
+  const handleSaveTicket = async () => {
+    if (!ticketModalRef.current || isSaving) return;
+    setIsSaving(true);
+    try {
+      const canvas = await html2canvas(ticketModalRef.current, {
+        backgroundColor: null, scale: 2, useCORS: true, allowTaint: false, logging: false,
+      });
+      const link = document.createElement('a');
+      const safeName = (activeTicket?.eventName || 'ticket').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      link.download = `flickyfest_${safeName}_ticket.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      console.error('Save failed:', err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // ── Ticket Modal: Share ───────────────────────────────────────────
+  const handleShareTicket = async () => {
+    const eventUrl = activeTicket?.eventId
+      ? `${window.location.origin}/events/${activeTicket.eventId}`
+      : window.location.href;
+    const shareData = {
+      title: `My ticket for ${activeTicket?.eventName || 'an event'} — FlickyFest`,
+      text: `I'm attending "${activeTicket?.eventName || 'an event'}"! Grab your spot on FlickyFest.`,
+      url: eventUrl,
+    };
+    if (navigator.share && navigator.canShare?.(shareData)) {
+      try { await navigator.share(shareData); } catch (e) { if (e.name !== 'AbortError') console.error(e); }
+    } else {
+      try {
+        await navigator.clipboard.writeText(eventUrl);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2500);
+      } catch { alert(`Share: ${eventUrl}`); }
     }
   };
 
@@ -221,7 +290,12 @@ function Profile() {
         ) : (
           <div className="tickets-grid">
             {tickets.map(ticket => (
-              <div key={ticket.id} className={`ticket-card ${ticket.isCheckedIn ? 'checked-in' : ''}`}>
+              <div
+                key={ticket.id}
+                className={`ticket-card ${ticket.isCheckedIn ? 'checked-in' : ''}`}
+                style={{ cursor: 'pointer' }}
+                onClick={() => { setActiveTicket(ticket); setIsCopied(false); }}
+              >
                 <div className="ticket-visuals">
                   <div className="qr-wrapper">
                     <QRCodeSVG 
@@ -269,6 +343,80 @@ function Profile() {
           </div>
         )}
       </div>
+
+      {/* ── Ticket Detail Modal ── */}
+      {activeTicket && (
+        <div className="tm-overlay" onClick={() => setActiveTicket(null)}>
+          <div className="tm-dialog" onClick={e => e.stopPropagation()}>
+            {/* Close */}
+            <button className="tm-close" onClick={() => setActiveTicket(null)}>
+              <X size={20} />
+            </button>
+
+            {/* Ticket card (captured by html2canvas) */}
+            <div ref={ticketModalRef} className="tm-card">
+              {/* Banner */}
+              <div className="tm-banner">
+                {activeTicket.eventImage
+                  ? <img src={activeTicket.eventImage} alt="" className="tm-banner-img" crossOrigin="anonymous" />
+                  : <div className="tm-banner-placeholder" />}
+                <div className="tm-banner-overlay" />
+                <div className="tm-banner-text">
+                  <div className="tm-banner-label">Admission Ticket</div>
+                  <div className="tm-banner-title">{activeTicket.eventName}</div>
+                </div>
+              </div>
+
+              {/* QR Section */}
+              <div className="tm-qr-section">
+                <div className="tm-qr-box">
+                  <QRCodeSVG
+                    value={activeTicket.qrToken || 'INVALID'}
+                    size={180}
+                    level="H"
+                    fgColor={activeTicket.isCheckedIn ? '#94a3b8' : '#0f172a'}
+                  />
+                  {activeTicket.isCheckedIn && <div className="tm-scanned-overlay">USED</div>}
+                </div>
+                <div className="tm-ticket-id">ID: {activeTicket.id}</div>
+              </div>
+
+              {/* Details */}
+              <div className="tm-details">
+                <div className="tm-detail-row">
+                  <div className="tm-detail-label">Holder</div>
+                  <div className="tm-detail-value">{currentUser?.displayName || 'Guest'}</div>
+                </div>
+                <div className="tm-detail-row">
+                  <div className="tm-detail-label">Date</div>
+                  <div className="tm-detail-value"><Calendar size={14} /> {activeTicket.eventDate} {activeTicket.eventTime}</div>
+                </div>
+                <div className="tm-detail-row">
+                  <div className="tm-detail-label">Venue</div>
+                  <div className="tm-detail-value"><MapPin size={14} /> {activeTicket.eventLocation}</div>
+                </div>
+                <div className="tm-detail-row">
+                  <div className="tm-detail-label">Type</div>
+                  <div className="tm-detail-value">
+                    <span className={`status-pill ${activeTicket.paymentStatus}`}>{activeTicket.paymentStatus.toUpperCase()}</span>
+                    {activeTicket.isCheckedIn && <span className="status-pill checked" style={{marginLeft:'6px'}}>USED</span>}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="tm-actions">
+              <button className="btn btn-primary" style={{ flex: 1, justifyContent: 'center' }} onClick={handleSaveTicket} disabled={isSaving}>
+                <Download size={18} /> {isSaving ? 'Saving…' : 'Save Ticket'}
+              </button>
+              <button className="btn btn-secondary" style={{ flex: 1, justifyContent: 'center' }} onClick={handleShareTicket}>
+                <Share2 size={18} /> {isCopied ? 'Link Copied!' : 'Share'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

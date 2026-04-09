@@ -1,14 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { Calendar, MapPin, Share2, Download, ArrowLeft } from 'lucide-react';
 import { auth } from '../config/firebase';
+import html2canvas from 'html2canvas';
+import { imgFallback } from '../utils/eventImageFallback';
 
 function Ticket() {
   const { id } = useParams();
   const [ticketData, setTicketData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorObj, setErrorObj] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const ticketRef = useRef(null);
 
   useEffect(() => {
     const fetchTicket = async () => {
@@ -40,6 +45,61 @@ function Ticket() {
     fetchTicket();
   }, [id]);
 
+  const handleSaveTicket = async () => {
+    if (!ticketRef.current || isSaving) return;
+    setIsSaving(true);
+    try {
+      const canvas = await html2canvas(ticketRef.current, {
+        backgroundColor: null,
+        scale: 2,           // retina quality
+        useCORS: true,      // allow cross-origin images (event banners)
+        allowTaint: false,
+        logging: false,
+      });
+      const link = document.createElement('a');
+      const safeName = (ticketData?.event?.title || 'ticket').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      link.download = `flickyfest_${safeName}_ticket.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      console.error('Failed to save ticket image:', err);
+      alert('Could not save ticket. Please try taking a screenshot manually.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleShare = async () => {
+    const eventTitle = ticketData?.event?.title || 'an event';
+    const eventId = ticketData?.ticket?.eventId;
+    const eventUrl = eventId
+      ? `${window.location.origin}/events/${eventId}`
+      : window.location.href;
+
+    const shareData = {
+      title: `My ticket for ${eventTitle} — FlickyFest`,
+      text: `I'm attending “${eventTitle}”! Grab your spot on FlickyFest.`,
+      url: eventUrl,
+    };
+
+    if (navigator.share && navigator.canShare?.(shareData)) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        if (err.name !== 'AbortError') console.error('Share failed:', err);
+      }
+    } else {
+      // Fallback: copy event URL to clipboard
+      try {
+        await navigator.clipboard.writeText(eventUrl);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2500);
+      } catch {
+        alert(`Share this link: ${eventUrl}`);
+      }
+    }
+  };
+
   if (loading) return <div className="container" style={{ paddingTop: '2rem' }}>Loading Ticket...</div>;
   if (errorObj || !ticketData) return <div className="container" style={{ paddingTop: '2rem', color: 'var(--danger-color)' }}>{errorObj || "Ticket not found."}</div>;
 
@@ -52,10 +112,10 @@ function Ticket() {
         <ArrowLeft size={16} /> Back to My Tickets
       </Link>
 
-      <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-xl)', overflow: 'hidden', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border-color)' }}>
+      <div ref={ticketRef} style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-xl)', overflow: 'hidden', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border-color)' }}>
         {/* Ticket Header */}
         <div style={{ height: '120px', position: 'relative' }}>
-          <img src={event.image} alt="Ticket banner" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src={event.image} alt="Ticket banner" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={imgFallback(event.category)} crossOrigin="anonymous" />
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)' }}></div>
           <div style={{ position: 'absolute', bottom: '1rem', left: '1.5rem', color: 'white' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.9 }}>Admission Ticket</div>
@@ -99,11 +159,20 @@ function Ticket() {
       </div>
 
       <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-        <button className="btn btn-primary" style={{ flex: 1, justifyContent: 'center' }}>
-          <Download size={18} /> Save Ticket
+        <button
+          className="btn btn-primary"
+          style={{ flex: 1, justifyContent: 'center' }}
+          onClick={handleSaveTicket}
+          disabled={isSaving}
+        >
+          <Download size={18} /> {isSaving ? 'Saving…' : 'Save Ticket'}
         </button>
-        <button className="btn btn-secondary" style={{ flex: 1, justifyContent: 'center' }}>
-          <Share2 size={18} /> Share
+        <button
+          className="btn btn-secondary"
+          style={{ flex: 1, justifyContent: 'center' }}
+          onClick={handleShare}
+        >
+          <Share2 size={18} /> {isCopied ? 'Link Copied!' : 'Share'}
         </button>
       </div>
     </div>
