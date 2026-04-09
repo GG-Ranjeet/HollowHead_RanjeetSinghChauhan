@@ -7,8 +7,8 @@ Hollow Head ( KPT069 )
 
 ### Team members
 * Ranjeet Singh Chauhan
-* Aaryan Kumar
-* Piyush Shukla
+* [Aaryan Kumar](https://github.com/AaryanKumar677)
+* [Piyush Shukla](https://github.com/PiyushShukla9140)
 
 ## 🌟 Key Features
 
