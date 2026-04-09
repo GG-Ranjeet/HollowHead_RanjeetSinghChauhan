@@ -46,6 +46,7 @@ function App() {
           <Route element={<OrganizerLayout />}>
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="create" element={<CreateEvent />} />
+            <Route path="edit/:id" element={<CreateEvent />} />
             <Route path="settings" element={<OrganizerSettings />} />
             <Route path="validate" element={<TicketValidator />} />
           </Route>

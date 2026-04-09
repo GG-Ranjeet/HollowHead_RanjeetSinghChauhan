@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Users, DollarSign, Calendar, TrendingUp, Ticket } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { auth } from '../config/firebase';
 import { AreaChart, Area, BarChart, Bar, Legend, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const chartData = [
@@ -26,7 +27,9 @@ const REMAINING_COLORS = ['#e0e7ff', '#d1fae5', '#fef3c7', '#fce7f3']; // Lighte
 
 function Dashboard() {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [organizerEvents, setOrganizerEvents] = useState([]);
+  const [activeMenuId, setActiveMenuId] = useState(null);
   const [animProgress, setAnimProgress] = useState(0); // 0 to 1
   const animRef = useRef(null);
 
@@ -53,36 +56,86 @@ function Dashboard() {
     return () => cancelAnimationFrame(animRef.current);
   }, []);
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const response = await fetch('http://localhost:5000/api/events');
-        const data = await response.json();
+  const fetchEvents = async () => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const response = await fetch('http://localhost:5000/api/events/organizer/me', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      
+      if (response.ok && data.events) {
+        // Format events for the table
+        const hostedEvents = data.events
+          .map(event => ({
+            id: event.id,
+            title: event.title,
+            date: new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            totalSpots: event.totalCapacity || 0,
+            spotsLeft: (event.totalCapacity || 0) - (event.ticketsSold || 0),
+            status: event.status || 'published'
+          }));
         
-        if (response.ok && data.events) {
-          // Filter events by logged in Organizer and format them for the table
-          const hostedEvents = data.events
-            .filter(event => event.organizerId === currentUser?.uid)
-            .map(event => ({
-              id: event.id,
-              title: event.title,
-              date: new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-              totalSpots: event.totalCapacity || 0,
-              spotsLeft: (event.totalCapacity || 0) - (event.ticketsSold || 0),
-              status: event.status || 'published'
-            }));
-          
-          setOrganizerEvents(hostedEvents);
-        }
-      } catch (error) {
-        console.error("Failed to fetch events:", error);
+        setOrganizerEvents(hostedEvents);
       }
-    };
-    
+    } catch (error) {
+      console.error("Failed to fetch events:", error);
+    }
+  };
+
+  useEffect(() => {
     if (currentUser) {
       fetchEvents();
     }
   }, [currentUser]);
+
+  const handleDeleteEvent = async (id) => {
+    if (window.confirm("Are you sure you want to delete this event? This action cannot be undone.")) {
+      try {
+        const token = await auth.currentUser.getIdToken();
+        const response = await fetch(`http://localhost:5000/api/events/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          fetchEvents(); // Refresh list
+        } else {
+          alert("Failed to delete event.");
+        }
+      } catch (error) {
+        console.error("Error deleting event:", error);
+      }
+    }
+  };
+
+  const handleOfflineSale = async (id) => {
+    const input = window.prompt("Enter the number of offline tickets sold:");
+    if (input !== null && input.trim() !== '') {
+      const amount = parseInt(input, 10);
+      if (isNaN(amount) || amount <= 0) {
+        alert("Please enter a valid positive number.");
+        return;
+      }
+      try {
+        const token = await auth.currentUser.getIdToken();
+        const response = await fetch(`http://localhost:5000/api/events/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ offlineTicketsSold: amount })
+        });
+        if (response.ok) {
+          fetchEvents(); // Refresh list to see updated spots
+        } else {
+          alert("Failed to update offline sales.");
+        }
+      } catch (error) {
+         console.error("Error updating offline sales:", error);
+      }
+    }
+  };
 
   // Animated data — bars grow because the values change
   const animatedGoalsData = goalsData.map((item) => ({
@@ -199,7 +252,7 @@ function Dashboard() {
       </div>
 
       {/* Event List */}
-      <h3>Your Active Events</h3>
+      <h3>All Events Hosted By You</h3>
       <div style={{ marginTop: '1rem', background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
@@ -227,8 +280,34 @@ function Dashboard() {
                 <td style={{ padding: '1rem' }}>
                   <span style={{ padding: '0.25rem 0.5rem', background: e.status === 'published' ? '#dcfce7' : '#fef3c7', color: e.status === 'published' ? '#166534' : '#92400e', borderRadius: 'var(--radius-full)', fontSize: '0.75rem', fontWeight: 600 }}>{e.status === 'published' ? 'Active' : 'Draft'}</span>
                 </td>
-                <td style={{ padding: '1rem' }}>
-                  <button className="btn btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>Manage</button>
+                <td style={{ padding: '1rem', position: 'relative' }}>
+                  <button 
+                    onClick={() => setActiveMenuId(activeMenuId === e.id ? null : e.id)} 
+                    className="btn btn-secondary" 
+                    style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}
+                  >
+                    Manage
+                  </button>
+                  {activeMenuId === e.id && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      right: '1rem',
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: 'var(--radius-md)',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                      zIndex: 10,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      minWidth: '120px',
+                      overflow: 'hidden'
+                    }}>
+                      <button onClick={() => { setActiveMenuId(null); navigate(`/organizer/edit/${e.id}`); }} style={{ padding: '0.75rem 1rem', textAlign: 'left', background: 'none', border: 'none', borderBottom: '1px solid var(--border-color)', fontSize: '0.875rem', cursor: 'pointer', outline: 'none' }}>Edit Event</button>
+                      <button onClick={() => { setActiveMenuId(null); handleOfflineSale(e.id); }} style={{ padding: '0.75rem 1rem', textAlign: 'left', background: 'none', border: 'none', borderBottom: '1px solid var(--border-color)', fontSize: '0.875rem', cursor: 'pointer', outline: 'none' }}>+ Offline Sale</button>
+                      <button onClick={() => { setActiveMenuId(null); handleDeleteEvent(e.id); }} style={{ padding: '0.75rem 1rem', textAlign: 'left', background: 'none', border: 'none', fontSize: '0.875rem', cursor: 'pointer', outline: 'none', color: '#ef4444' }}>Delete Event</button>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}
